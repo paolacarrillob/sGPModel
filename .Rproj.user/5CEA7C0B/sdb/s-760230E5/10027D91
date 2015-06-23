@@ -1,0 +1,18 @@
+{
+    "contents" : "############################################################\n### First EBola model, trying to see he effects of sGP #####\n############################################################\n\n###################################\n# FUNCTION DEFINITIONS\n###################################\n\n###\n# ebola(t,x,parms)\n# Use:\tFunction to calculate derivative of equations in the basic HIV model.\n#       Note that this is a variant with no explicit variable for the virus level.\n# Input:\n# \tt: time (not used here, because there is no explicit time dependence)\n# \tx: vector of the current values of all variables\n# \tparms: \tdummy variable, which is not used here (normally used to pass on\n#\t\tparameter values, but not needed here because parameters are defined globally)\n# Output:\n#\tder: vector of derivatives\n\nebola <- function(t,x,parms){\n  with(as.list(c(x)),{# this structure allows us to refer to the elements of x directly\n    dT <- sigma - d*T - b*T*V\n    dI <- b*T*V - d_I*I -k*E*I\n    dV <- p*I -d_V*V\n    dE <- alpha*E*I -d_E*E\n    der <- c(dT,dI,dV,dE)\n    list(der)\n  })\n}\n\nn.integrate <- function(start,end,intstep=10,init.x,model){\n  t.out <- seq(start,end,length=(end-start)*intstep+1)\n  as.data.frame(lsoda(init.x,t.out,model,parms=parms))\n}\n\n###########################\n# MAIN PROGRAM\n###########################\n\n### LOAD LIBRARIES\n#load R library for ordinary differential equation solvers\nif (!require(\"deSolve\"))\n{\n  install.packages(\"deSolve\", dependencies = TRUE)\n  library(deSolve)\n}\n\n### INITIALIZE PARAMETER SETTINGS\n## Model parameters (defined on the time scale of days)\n#  I define parameters globally to be able to change them between runs easily\n\nsigma=10 #all params are per day\nd=0.01\nd_I = 0.1\nd_E = 0.1\nd_V = 3\np = 100\nb=0.01\nk = 1\nalpha = 2\n\nparms <- c() # dummy-variable needed for lsoda\n\n# Initial conditions (i.e. the values of all variables at time = start)\nI0 <- 0   # to model initial infection\nT0 <- sigma/d   # to start from uninfected steady state\nE0 <- 0.1\nV0 <- 1\ninit.x <- c(T=T0, I=I0, V=V0, E=E0)\n\n####################################################\n### PART I\n### Simulation of initial infection\n\nsimlength <- 100\nout <- n.integrate(start=0,end=simlength,init.x=init.x,model=ebola)\nattach(out)  # this allows us to refer to data columns in out directly\n\n# Plot time course\nplot(c(0,simlength),c(0,T0),type=\"n\",xlab=\"time (days)\",ylab=\"\", ylim = c(0,2000))\nlines(time,rep(0,length(time)),col=\"grey\",lwd=1,lty=2) # This command draws a line with f(t)=0 to better observe if a population converges against 0, i.e. if the population will go extinct\nlines(time,T,lwd=2)\nlines(time,I,col=\"red\",lwd=2)\nlines(time,V,col=\"green\",lwd=2)\nlines(time,E,col=\"blue\",lwd=2)\nlegend(\"topright\",c(\"T\",\"I\", \"V\", \"E\"),lwd=c(2,2,2,2),col=c(\"black\",\"red\", \"green\", \"blue\"))\n",
+    "created" : 1435059280884.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1927999601",
+    "id" : "10027D91",
+    "lastKnownWriteTime" : 1434982450,
+    "path" : "~/Documents/Ebola/sGPModel/sGP_dynamics.R",
+    "project_path" : "sGP_dynamics.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "type" : "r_source"
+}
